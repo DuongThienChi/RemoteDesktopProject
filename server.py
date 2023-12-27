@@ -43,7 +43,7 @@ class Server:
             conn, addr = server_host.accept()
             size = conn.recv(1024).decode("utf-8")
             size = size.split(' ')
-            self.width,self.height = size[0],size[1]
+            self.width,self.height = int(size[0]),int(size[1])
             conn.close()
             server_host.close()
         except:

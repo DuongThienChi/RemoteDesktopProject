@@ -30,7 +30,6 @@ class Client:
         except:
             mess.showerror(title="Lỗi",
                              message="Client Kết nối thất bại!")
-            os.system("taskkill /f /im "+filename)
     def send_client_ip(self): #goi dia chi ip client
         try:
             client_host = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -40,7 +39,6 @@ class Client:
         except:
             mess.showerror(title="Lỗi",
                              message="Client Kết nối thất bại!")
-            os.system("taskkill /f /im "+filename)
     def send_mouse(self,data): #gởi dữ liệu chuột
         message =  {
             'type_data': 'mouse',
@@ -90,7 +88,6 @@ class Client:
             'key' : key
         }
         if(self.focus_window):
-            print(data['key'])
             self.send_key(data)
         
     def on_release(self,key):
