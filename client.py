@@ -11,15 +11,16 @@ import numpy as np
 import os
 import time
 class Client:
-    def __init__(self):
-        self.host=""
+    def __init__(self,server_ip,port,record):
+        self.host=server_ip
         self.my_host = socket.gethostbyname(socket.gethostname())
-        self.port = 5555 #port goi hinh anh
+        self.port = port #port goi hinh anh
         self.click_count = 0
         self.client_socket = None
         self.running = True
         self.window = "APPSocket"
         self.focus_window = False
+        self.record = record
     def send_size_window(self):  #goi kich thuoc cua so
         width= input("Choose size width of window: ")
         height= input("Choose size height of window: ")
@@ -106,6 +107,12 @@ class Client:
         server_socket.bind((self.my_host, self.port))
         server_socket.listen()
         connection, address = server_socket.accept()
+        if self.record:
+            resolution = tuple(pyautogui.size())
+            codec = cv2.VideoWriter_fourcc(*"XVID")
+            filename = "C:/Users/ViettelStore/OneDrive - VNU-HCMUS/Desktop/Recording.avi"
+            fps = 12.0
+            file_record = cv2.VideoWriter(filename, codec, fps, resolution)
         payload_size = struct.calcsize('>L')
         data = b""
         while self.running:
@@ -135,7 +142,8 @@ class Client:
                 frame = cv2.imdecode(frame, cv2.IMREAD_COLOR)
                 cv2.namedWindow(self.window, cv2.WINDOW_NORMAL)
                 cv2.resizeWindow(self.window,frame.shape[1], frame.shape[0])
-                
+                if self.record:
+                    file_record.write(frame) #ghi màn hình
                 cv2.imshow(self.window, frame) #show màn hình
                 if (pyautogui.getActiveWindowTitle() == self.window):
                     self.focus_window = True
@@ -152,7 +160,6 @@ class Client:
             #     cv2.destroyAllWindows()
             #     break
     def start_client(self):
-        self.host=input("Enter host: ")
         self.send_client_ip()
         self.send_size_window()
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #dùng UDP để gởi chuột
@@ -164,7 +171,7 @@ class Client:
         t1.join()
         t2.join()
         self.client_socket.close()
-if __name__ == "__main__":
-    client = Client()
-    client.start_client()
+# if __name__ == "__main__":
+#     client = Client()
+#     client.start_client()
     

@@ -7,247 +7,320 @@
 
 
 from PyQt6 import QtCore, QtGui, QtWidgets
+import socket
+import threading
+import server,client
+import sys
+import trace
+import tkinter.messagebox as mess
+import time
+class thread_with_trace(threading.Thread):
+    def __init__(self, *args, **keywords):
+        threading.Thread.__init__(self, *args, **keywords)
+        self.killed = False
 
+    def start(self):
+        self.__run_backup = self.run
+        self.run = self.__run	 
+        threading.Thread.start(self)
 
+    def __run(self):
+        sys.settrace(self.globaltrace)
+        self.__run_backup()
+        self.run = self.__run_backup
+
+    def globaltrace(self, frame, event, arg):
+        if event == 'call':
+            return self.localtrace
+        else:
+            return None
+
+    def localtrace(self, frame, event, arg):
+        if self.killed:
+            if event == 'line':
+                raise SystemExit()
+        return self.localtrace
+
+    def kill(self):
+        self.killed = True
 class Ui_RemoteDesktop(object):
-    def setupUi(self, RemoteDesktop):
-        RemoteDesktop.setObjectName("RemoteDesktop")
-        RemoteDesktop.resize(1009, 632)
-        RemoteDesktop.setStyleSheet("background-color: rgb(245, 247, 250)")
-        self.centralwidget = QtWidgets.QWidget(parent=RemoteDesktop)
-        self.centralwidget.setObjectName("centralwidget")
-        self.widget = QtWidgets.QWidget(parent=self.centralwidget)
-        self.widget.setGeometry(QtCore.QRect(30, 95, 469, 470))
-        self.widget.setStyleSheet("border: 1px solid rgb(0, 0, 0);\n"
-"background-color: rgb(230, 233, 237);\n"
-"border-radius: 10px;")
-        self.widget.setObjectName("widget")
-        self.label = QtWidgets.QLabel(parent=self.widget)
-        self.label.setEnabled(False)
-        self.label.setGeometry(QtCore.QRect(20, 30, 401, 38))
-        font = QtGui.QFont()
-        font.setFamily("Inter Light")
-        font.setPointSize(18)
-        font.setBold(False)
-        font.setItalic(False)
-        font.setWeight(3)
-        self.label.setFont(font)
-        self.label.setStyleSheet("border: 0px;\n"
-"font: 25 18pt \"Inter Light\";\n"
-"color: rgb(0, 0, 0);")
-        self.label.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
-        self.label.setFrameShadow(QtWidgets.QFrame.Shadow.Plain)
-        self.label.setLineWidth(0)
-        self.label.setObjectName("label")
-        self.label_2 = QtWidgets.QLabel(parent=self.widget)
-        self.label_2.setGeometry(QtCore.QRect(34, 93, 138, 37))
-        self.label_2.setStyleSheet("border: 0px;\n"
-"font: 25 13pt \"Inter Light\";\n"
-"color: rgb(0, 0, 0);")
-        self.label_2.setObjectName("label_2")
-        self.label_3 = QtWidgets.QLabel(parent=self.widget)
-        self.label_3.setGeometry(QtCore.QRect(34, 189, 116, 31))
-        self.label_3.setStyleSheet("border: 0px;\n"
-"font: 25 13pt \"Inter Light\";\n"
-"color: rgb(0, 0, 0);")
-        self.label_3.setObjectName("label_3")
-        self.my_pass = QtWidgets.QLineEdit(parent=self.widget)
-        self.my_pass.setGeometry(QtCore.QRect(34, 230, 309, 39))
-        self.my_pass.setStyleSheet("border: 1px solid rgb(0, 0, 0);\n"
-"color: rgb(0, 0, 0);\n"
-"background-color: rgb(255, 255, 255);\n"
-"border-radius: 0px;\n"
-"font: 12 12pt \"Inter ExtraLight\";")
-        self.my_pass.setObjectName("my_pass")
-        self.your_ip = QtWidgets.QLabel(parent=self.widget)
-        self.your_ip.setGeometry(QtCore.QRect(34, 140, 309, 39))
-        self.your_ip.setStyleSheet("border: 1px solid rgb(0, 0, 0);\n"
-"border-radius: 0px;\n"
-"color: rgb(0, 0, 0);\n"
-"background-color: rgb(255, 255, 255);\n"
-"font: 12 12pt \"Inter ExtraLight\";")
-        self.your_ip.setObjectName("your_ip")
-        self.audio = QtWidgets.QRadioButton(parent=self.widget)
-        self.audio.setGeometry(QtCore.QRect(34, 290, 311, 41))
-        self.audio.setStyleSheet("border: 0px;\n"
-"font: 25 12pt \"Inter Light\";\n"
-"color: rgb(0, 0, 0);")
-        self.audio.setObjectName("audio")
-        self.open_connect = QtWidgets.QPushButton(parent=self.widget)
-        self.open_connect.setGeometry(QtCore.QRect(34, 380, 251, 51))
-        font = QtGui.QFont()
-        font.setFamily("Inter ExtraBold")
-        font.setPointSize(16)
-        font.setBold(False)
-        font.setItalic(False)
-        font.setWeight(10)
-        self.open_connect.setFont(font)
-        self.open_connect.setStyleSheet("QPushButton {\n"
-"    background-color: rgb(71, 112, 255);\n"
-"    color: rgb(0, 0, 0);\n"
-"    font: 81 16pt \"Inter ExtraBold\";\n"
-"    border-radius: 5px;\n"
-"}\n"
-"QPushButton:hover{\n"
-"    background-color: rgb(82, 144, 255);\n"
-"    color: rgb(0, 0, 0);\n"
-"    font: 81 16pt \"Inter ExtraBold\";\n"
-"    border-radius: 5px;\n"
-"}\n"
-"QPushButton:pressed{\n"
-"    padding-left: 5px;\n"
-"    padding-top: 5px;\n"
-"}")
-        self.open_connect.setObjectName("open_connect")
-        self.label_9 = QtWidgets.QLabel(parent=self.centralwidget)
-        self.label_9.setEnabled(False)
-        self.label_9.setGeometry(QtCore.QRect(5, 5, 281, 38))
-        font = QtGui.QFont()
-        font.setFamily("Inter Light")
-        font.setPointSize(18)
-        font.setBold(False)
-        font.setItalic(False)
-        font.setWeight(3)
-        self.label_9.setFont(font)
-        self.label_9.setStyleSheet("border: 0px;\n"
-"font: 25 18pt \"Inter Light\";\n"
-"color: rgb(0, 0, 0);\n"
-"")
-        self.label_9.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
-        self.label_9.setFrameShadow(QtWidgets.QFrame.Shadow.Plain)
-        self.label_9.setLineWidth(0)
-        self.label_9.setObjectName("label_9")
-        self.widget_2 = QtWidgets.QWidget(parent=self.centralwidget)
-        self.widget_2.setGeometry(QtCore.QRect(510, 95, 469, 470))
-        self.widget_2.setStyleSheet("border: 1px solid rgb(0, 0, 0);\n"
-"background-color: rgb(230, 233, 237);\n"
-"border-radius: 10px;")
-        self.widget_2.setObjectName("widget_2")
-        self.label_5 = QtWidgets.QLabel(parent=self.widget_2)
-        self.label_5.setEnabled(False)
-        self.label_5.setGeometry(QtCore.QRect(20, 30, 431, 38))
-        font = QtGui.QFont()
-        font.setFamily("Inter Light")
-        font.setPointSize(18)
-        font.setBold(False)
-        font.setItalic(False)
-        font.setWeight(3)
-        self.label_5.setFont(font)
-        self.label_5.setStyleSheet("border: 0px;\n"
-"font: 25 18pt \"Inter Light\";\n"
-"color: rgb(0, 0, 0);")
-        self.label_5.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
-        self.label_5.setFrameShadow(QtWidgets.QFrame.Shadow.Plain)
-        self.label_5.setLineWidth(0)
-        self.label_5.setObjectName("label_5")
-        self.label_6 = QtWidgets.QLabel(parent=self.widget_2)
-        self.label_6.setGeometry(QtCore.QRect(34, 93, 138, 37))
-        self.label_6.setStyleSheet("border: 0px;\n"
-"font: 25 13pt \"Inter Light\";\n"
-"color: rgb(0, 0, 0);")
-        self.label_6.setObjectName("label_6")
-        self.label_7 = QtWidgets.QLabel(parent=self.widget_2)
-        self.label_7.setGeometry(QtCore.QRect(34, 189, 116, 31))
-        self.label_7.setStyleSheet("border: 0px;\n"
-"font: 25 13pt \"Inter Light\";\n"
-"color: rgb(0, 0, 0);")
-        self.label_7.setObjectName("label_7")
-        self.record = QtWidgets.QRadioButton(parent=self.widget_2)
-        self.record.setGeometry(QtCore.QRect(34, 290, 311, 41))
-        self.record.setStyleSheet("border: 0px;\n"
-"font: 25 12pt \"Inter Light\";\n"
-"color: rgb(0, 0, 0);")
-        self.record.setObjectName("record")
-        self.connect = QtWidgets.QPushButton(parent=self.widget_2)
-        self.connect.setGeometry(QtCore.QRect(34, 380, 251, 51))
-        font = QtGui.QFont()
-        font.setFamily("Inter ExtraBold")
-        font.setPointSize(16)
-        font.setBold(False)
-        font.setItalic(False)
-        font.setWeight(10)
-        self.connect.setFont(font)
-        self.connect.setStyleSheet("QPushButton {\n"
-"    background-color: rgb(71, 112, 255);\n"
-"    color: rgb(0, 0, 0);\n"
-"    font: 81 16pt \"Inter ExtraBold\";\n"
-"    border-radius: 5px;\n"
-"}\n"
-"QPushButton:hover{\n"
-"    background-color: rgb(82, 144, 255);\n"
-"    color: rgb(0, 0, 0);\n"
-"    font: 81 16pt \"Inter ExtraBold\";\n"
-"    border-radius: 5px;\n"
-"}\n"
-"QPushButton:pressed{\n"
-"    padding-left: 5px;\n"
-"    padding-top: 5px;\n"
-"}")
-        self.connect.setObjectName("connect")
-        self.server_ip = QtWidgets.QLineEdit(parent=self.widget_2)
-        self.server_ip.setGeometry(QtCore.QRect(34, 140, 309, 39))
-        self.server_ip.setStyleSheet("border: 1px solid rgb(0, 0, 0);\n"
-"color: rgb(0, 0, 0);\n"
-"background-color: rgb(255, 255, 255);\n"
-"border-radius: 0px;\n"
-"font: 12 12pt \"Inter ExtraLight\";")
-        self.server_ip.setObjectName("server_ip")
-        self.pass_server = QtWidgets.QLineEdit(parent=self.widget_2)
-        self.pass_server.setGeometry(QtCore.QRect(34, 230, 309, 39))
-        self.pass_server.setStyleSheet("border: 1px solid rgb(0, 0, 0);\n"
-"color: rgb(0, 0, 0);\n"
-"background-color: rgb(255, 255, 255);\n"
-"border-radius: 0px;\n"
-"font: 12 12pt \"Inter ExtraLight\";")
-        self.pass_server.setObjectName("pass_server")
-        RemoteDesktop.setCentralWidget(self.centralwidget)
-        self.statusbar = QtWidgets.QStatusBar(parent=RemoteDesktop)
-        self.statusbar.setObjectName("statusbar")
-        RemoteDesktop.setStatusBar(self.statusbar)
+        def __init__(self):
+                self.check_open_connect=False
+                self.check_start_remote=False
+                self.thread_client= None
+                self.thread_server= None
+        def setupUi(self, RemoteDesktop):
+                RemoteDesktop.setObjectName("RemoteDesktop")
+                RemoteDesktop.resize(1009, 632)
+                RemoteDesktop.setStyleSheet("background-color: rgb(245, 247, 250)")
+                self.centralwidget = QtWidgets.QWidget(parent=RemoteDesktop)
+                self.centralwidget.setObjectName("centralwidget")
+                self.widget = QtWidgets.QWidget(parent=self.centralwidget)
+                self.widget.setGeometry(QtCore.QRect(30, 95, 469, 470))
+                self.widget.setStyleSheet("border: 1px solid rgb(0, 0, 0);\n"
+        "background-color: rgb(230, 233, 237);\n"
+        "border-radius: 10px;")
+                self.widget.setObjectName("widget")
+                self.label = QtWidgets.QLabel(parent=self.widget)
+                self.label.setEnabled(False)
+                self.label.setGeometry(QtCore.QRect(20, 30, 401, 38))
+                font = QtGui.QFont()
+                font.setFamily("Inter Light")
+                font.setPointSize(18)
+                font.setBold(False)
+                font.setItalic(False)
+                font.setWeight(3)
+                self.label.setFont(font)
+                self.label.setStyleSheet("border: 0px;\n"
+        "font: 25 18pt \"Inter Light\";\n"
+        "color: rgb(0, 0, 0);")
+                self.label.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+                self.label.setFrameShadow(QtWidgets.QFrame.Shadow.Plain)
+                self.label.setLineWidth(0)
+                self.label.setObjectName("label")
+                self.label_2 = QtWidgets.QLabel(parent=self.widget)
+                self.label_2.setGeometry(QtCore.QRect(34, 93, 138, 37))
+                self.label_2.setStyleSheet("border: 0px;\n"
+        "font: 25 13pt \"Inter Light\";\n"
+        "color: rgb(0, 0, 0);")
+                self.label_2.setObjectName("label_2")
+                self.label_3 = QtWidgets.QLabel(parent=self.widget)
+                self.label_3.setGeometry(QtCore.QRect(34, 189, 116, 31))
+                self.label_3.setStyleSheet("border: 0px;\n"
+        "font: 25 13pt \"Inter Light\";\n"
+        "color: rgb(0, 0, 0);")
+                self.label_3.setObjectName("label_3")
+                self.my_port = QtWidgets.QLineEdit(parent=self.widget)
+                self.my_port.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
+                self.my_port.setGeometry(QtCore.QRect(34, 230, 309, 39))
+                self.my_port.setStyleSheet("border: 1px solid rgb(0, 0, 0);\n"
+        "color: rgb(0, 0, 0);\n"
+        "background-color: rgb(255, 255, 255);\n"
+        "border-radius: 0px;\n"
+        "font: 12 12pt \"Inter ExtraLight\";")
+                self.my_port.setObjectName("my_port")
+                self.your_ip = QtWidgets.QLabel(parent=self.widget)
+                self.your_ip.setGeometry(QtCore.QRect(34, 140, 309, 39))
+                self.your_ip.setStyleSheet("border: 1px solid rgb(0, 0, 0);\n"
+        "border-radius: 0px;\n"
+        "color: rgb(0, 0, 0);\n"
+        "background-color: rgb(255, 255, 255);\n"
+        "font: 12 12pt \"Inter ExtraLight\";")
+                self.your_ip.setObjectName("your_ip")
+                self.audio = QtWidgets.QRadioButton(parent=self.widget)
+                self.audio.setGeometry(QtCore.QRect(34, 290, 311, 41))
+                self.audio.setStyleSheet("border: 0px;\n"
+        "font: 25 12pt \"Inter Light\";\n"
+        "color: rgb(0, 0, 0);")
+                self.audio.setObjectName("audio")
+                self.open_connect = QtWidgets.QPushButton(parent=self.widget)
+                self.open_connect.setGeometry(QtCore.QRect(34, 380, 251, 51))
+                font = QtGui.QFont()
+                font.setFamily("Inter ExtraBold")
+                font.setPointSize(16)
+                font.setBold(False)
+                font.setItalic(False)
+                font.setWeight(10)
+                self.open_connect.setFont(font)
+                self.open_connect.setStyleSheet("QPushButton {\n"
+        "    background-color: rgb(71, 112, 255);\n"
+        "    color: rgb(0, 0, 0);\n"
+        "    font: 81 16pt \"Inter ExtraBold\";\n"
+        "    border-radius: 5px;\n"
+        "}\n"
+        "QPushButton:hover{\n"
+        "    background-color: rgb(82, 144, 255);\n"
+        "    color: rgb(0, 0, 0);\n"
+        "    font: 81 16pt \"Inter ExtraBold\";\n"
+        "    border-radius: 5px;\n"
+        "}\n"
+        "QPushButton:pressed{\n"
+        "    padding-left: 5px;\n"
+        "    padding-top: 5px;\n"
+        "}")
+                self.open_connect.setObjectName("open_connect")
+                self.label_9 = QtWidgets.QLabel(parent=self.centralwidget)
+                self.label_9.setEnabled(False)
+                self.label_9.setGeometry(QtCore.QRect(5, 5, 281, 38))
+                font = QtGui.QFont()
+                font.setFamily("Inter Light")
+                font.setPointSize(18)
+                font.setBold(False)
+                font.setItalic(False)
+                font.setWeight(3)
+                self.label_9.setFont(font)
+                self.label_9.setStyleSheet("border: 0px;\n"
+        "font: 25 18pt \"Inter Light\";\n"
+        "color: rgb(0, 0, 0);\n"
+        "")
+                self.label_9.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+                self.label_9.setFrameShadow(QtWidgets.QFrame.Shadow.Plain)
+                self.label_9.setLineWidth(0)
+                self.label_9.setObjectName("label_9")
+                self.widget_2 = QtWidgets.QWidget(parent=self.centralwidget)
+                self.widget_2.setGeometry(QtCore.QRect(510, 95, 469, 470))
+                self.widget_2.setStyleSheet("border: 1px solid rgb(0, 0, 0);\n"
+        "background-color: rgb(230, 233, 237);\n"
+        "border-radius: 10px;")
+                self.widget_2.setObjectName("widget_2")
+                self.label_5 = QtWidgets.QLabel(parent=self.widget_2)
+                self.label_5.setEnabled(False)
+                self.label_5.setGeometry(QtCore.QRect(20, 30, 431, 38))
+                font = QtGui.QFont()
+                font.setFamily("Inter Light")
+                font.setPointSize(18)
+                font.setBold(False)
+                font.setItalic(False)
+                font.setWeight(3)
+                self.label_5.setFont(font)
+                self.label_5.setStyleSheet("border: 0px;\n"
+        "font: 25 18pt \"Inter Light\";\n"
+        "color: rgb(0, 0, 0);")
+                self.label_5.setFrameShape(QtWidgets.QFrame.Shape.NoFrame)
+                self.label_5.setFrameShadow(QtWidgets.QFrame.Shadow.Plain)
+                self.label_5.setLineWidth(0)
+                self.label_5.setObjectName("label_5")
+                self.label_6 = QtWidgets.QLabel(parent=self.widget_2)
+                self.label_6.setGeometry(QtCore.QRect(34, 93, 138, 37))
+                self.label_6.setStyleSheet("border: 0px;\n"
+        "font: 25 13pt \"Inter Light\";\n"
+        "color: rgb(0, 0, 0);")
+                self.label_6.setObjectName("label_6")
+                self.label_7 = QtWidgets.QLabel(parent=self.widget_2)
+                self.label_7.setGeometry(QtCore.QRect(34, 189, 116, 31))
+                self.label_7.setStyleSheet("border: 0px;\n"
+        "font: 25 13pt \"Inter Light\";\n"
+        "color: rgb(0, 0, 0);")
+                self.label_7.setObjectName("label_7")
+                self.record = QtWidgets.QRadioButton(parent=self.widget_2)
+                self.record.setGeometry(QtCore.QRect(34, 290, 311, 41))
+                self.record.setStyleSheet("border: 0px;\n"
+        "font: 25 12pt \"Inter Light\";\n"
+        "color: rgb(0, 0, 0);")
+                self.record.setObjectName("record")
+                self.connect = QtWidgets.QPushButton(parent=self.widget_2)
+                self.connect.setGeometry(QtCore.QRect(34, 380, 251, 51))
+                font = QtGui.QFont()
+                font.setFamily("Inter ExtraBold")
+                font.setPointSize(16)
+                font.setBold(False)
+                font.setItalic(False)
+                font.setWeight(10)
+                self.connect.setFont(font)
+                self.connect.setStyleSheet("QPushButton {\n"
+        "    background-color: rgb(71, 112, 255);\n"
+        "    color: rgb(0, 0, 0);\n"
+        "    font: 81 16pt \"Inter ExtraBold\";\n"
+        "    border-radius: 5px;\n"
+        "}\n"
+        "QPushButton:hover{\n"
+        "    background-color: rgb(82, 144, 255);\n"
+        "    color: rgb(0, 0, 0);\n"
+        "    font: 81 16pt \"Inter ExtraBold\";\n"
+        "    border-radius: 5px;\n"
+        "}\n"
+        "QPushButton:pressed{\n"
+        "    padding-left: 5px;\n"
+        "    padding-top: 5px;\n"
+        "}")
+                self.connect.setObjectName("connect")
+                self.server_ip = QtWidgets.QLineEdit(parent=self.widget_2)
+                self.server_ip.setGeometry(QtCore.QRect(34, 140, 309, 39))
+                self.server_ip.setStyleSheet("border: 1px solid rgb(0, 0, 0);\n"
+        "color: rgb(0, 0, 0);\n"
+        "background-color: rgb(255, 255, 255);\n"
+        "border-radius: 0px;\n"
+        "font: 12 12pt \"Inter ExtraLight\";")
+                self.server_ip.setObjectName("server_ip")
+                self.port_server = QtWidgets.QLineEdit(parent=self.widget_2)
+                self.port_server.setEchoMode(QtWidgets.QLineEdit.EchoMode.Password)
+                self.port_server.setGeometry(QtCore.QRect(34, 230, 309, 39))
+                self.port_server.setStyleSheet("border: 1px solid rgb(0, 0, 0);\n"
+        "color: rgb(0, 0, 0);\n"
+        "background-color: rgb(255, 255, 255);\n"
+        "border-radius: 0px;\n"
+        "font: 12 12pt \"Inter ExtraLight\";")
+                self.port_server.setObjectName("port_server")
+                RemoteDesktop.setCentralWidget(self.centralwidget)
+                self.statusbar = QtWidgets.QStatusBar(parent=RemoteDesktop)
+                self.statusbar.setObjectName("statusbar")
+                RemoteDesktop.setStatusBar(self.statusbar)
 
-        self.retranslateUi(RemoteDesktop)
-        QtCore.QMetaObject.connectSlotsByName(RemoteDesktop)
-        self.op_click = False
-        self.con_click = False
-        self.open_connect.clicked.connect(self.open_click)
-        self.connect.clicked.connect(self.connect_click)
-        
-    def open_click(self):
-        if not self.op_click:
-            self.open_connect.setText("Close Connect")
-        else:
-            self.open_connect.setText("Open Connect")
-        self.op_click = not self.op_click
-        
-    def connect_click(self):
-        if not self.con_click:
-            self.connect.setText("Close Connect")
-        else:
-            self.connect.setText("Connect")
-        self.con_click = not self.con_click
+                self.retranslateUi(RemoteDesktop)
+                QtCore.QMetaObject.connectSlotsByName(RemoteDesktop)
+                self.open_connect.clicked.connect(self.open_click)
+                self.connect.clicked.connect(self.connect_click)
+                
+        def open_click(self):
+                if not self.check_open_connect:
+                        self.start_connect()
+                else:
+                        self.close_connect()
+                        self.open_connect.setText("Open Connect")
+        def connect_click(self):
+                if not self.check_start_remote:
+                        self.start_remote()
+                else:
+                        self.close_remote()
+                        self.connect.setText("Connect")
 
-    def retranslateUi(self, RemoteDesktop):
-        _translate = QtCore.QCoreApplication.translate
-        RemoteDesktop.setWindowTitle(_translate("RemoteDesktop", "Remote Desktop"))
-        self.label.setText(_translate("RemoteDesktop", "ALLOW REMOTE CONTROL"))
-        self.label_2.setText(_translate("RemoteDesktop", "Your IP"))
-        self.label_3.setText(_translate("RemoteDesktop", "Password"))
-        self.my_pass.setPlaceholderText(_translate("RemoteDesktop", "Enter Password"))
-        self.your_ip.setText(_translate("RemoteDesktop", "192.168.0.12"))
-        self.audio.setText(_translate("RemoteDesktop", "Allow share computer audio"))
-        self.open_connect.setText(_translate("RemoteDesktop", "Open Connect"))
-        self.label_9.setText(_translate("RemoteDesktop", "REMOTE DESKTOP"))
-        self.label_5.setText(_translate("RemoteDesktop", "CONTROL REMOTE DESKTOP"))
-        self.label_6.setText(_translate("RemoteDesktop", "Server IP"))
-        self.label_7.setText(_translate("RemoteDesktop", "Password"))
-        self.record.setText(_translate("RemoteDesktop", "Record remote control"))
-        self.connect.setText(_translate("RemoteDesktop", "Connect"))
-        self.server_ip.setPlaceholderText(_translate("RemoteDesktop", "Enter IP"))
-        self.pass_server.setPlaceholderText(_translate("RemoteDesktop", "Enter Password"))
-
-
+        def retranslateUi(self, RemoteDesktop):
+                _translate = QtCore.QCoreApplication.translate
+                RemoteDesktop.setWindowTitle(_translate("RemoteDesktop", "Remote Desktop"))
+                self.label.setText(_translate("RemoteDesktop", "ALLOW REMOTE CONTROL"))
+                self.label_2.setText(_translate("RemoteDesktop", "Your IP"))
+                self.label_3.setText(_translate("RemoteDesktop", "Port"))
+                self.my_port.setPlaceholderText(_translate("RemoteDesktop", "Enter Port"))
+                self.your_ip.setText(_translate("RemoteDesktop", self.get_ip_address()))
+                self.audio.setText(_translate("RemoteDesktop", "Allow share computer audio"))
+                self.open_connect.setText(_translate("RemoteDesktop", "Open Connect"))
+                self.label_9.setText(_translate("RemoteDesktop", "REMOTE DESKTOP"))
+                self.label_5.setText(_translate("RemoteDesktop", "CONTROL REMOTE DESKTOP"))
+                self.label_6.setText(_translate("RemoteDesktop", "Server IP"))
+                self.label_7.setText(_translate("RemoteDesktop", "Port"))
+                self.record.setText(_translate("RemoteDesktop", "Record remote control"))
+                self.connect.setText(_translate("RemoteDesktop", "Connect"))
+                self.server_ip.setPlaceholderText(_translate("RemoteDesktop", "Enter IP"))
+                self.port_server.setPlaceholderText(_translate("RemoteDesktop", "Enter Port"))
+        def start_connect(self):
+                if not self.check_start_remote and not self.check_open_connect:
+                        self.check_open_connect = True
+                        self.run_server()
+                        self.open_connect.setText("Close Connect")
+                else:
+                        mess.showerror(title="Lỗi",
+                                message="Bạn không thể mở connect vì đang remote.\nVui lòng đóng remote!")
+                        
+        def start_remote(self):
+                if not self.check_start_remote and not self.check_open_connect:
+                        self.check_start_remote = True
+                        self.run_client()
+                        self.connect.setText("Close Connect")
+                else:
+                        mess.showerror(title="Lỗi",
+                                message="Bạn không thể remote vì đang mở connect.\nVui lòng đóng connect!")
+        def close_connect(self):
+                self.check_open_connect = False
+                self.thread_server.kill()
+        def close_remote(self):
+                self.check_start_remote = False
+                self.thread_client.kill()
+        def thread_run_server(self):
+                app = server.Server(self.my_port.text())
+                app.start_server()
+        def run_server(self):
+                self.thread_server = thread_with_trace(target=self.thread_run_server)
+                self.thread_server.start()
+        def thread_run_client(self):
+                app = client.Client(self.server_ip.text(),self.port_server.text(),self.record.isChecked())
+                app.start_client()
+        def run_client(self):
+                self.thread_client =  thread_with_trace(target=self.thread_run_client)
+                self.thread_client.start()
+        def get_ip_address(self):
+                server_ip = socket.gethostbyname(socket.gethostname())
+                return server_ip
 if __name__ == "__main__":
-    import sys
     app = QtWidgets.QApplication(sys.argv)
     RemoteDesktop = QtWidgets.QMainWindow()
     ui = Ui_RemoteDesktop()

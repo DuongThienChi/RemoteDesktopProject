@@ -13,13 +13,13 @@ import os
 import struct
 from pynput import keyboard
 class Server:
-    def __init__(self):
+    def __init__(self,port):
         self.x_res,self.y_res = int(pyautogui.size()[0]), int(pyautogui.size()[1])
         self.width,self.height = int(pyautogui.size()[0]), int(pyautogui.size()[1])
         self.host =""
         self.my_host = socket.gethostbyname(socket.gethostname())
         self.running = True
-        self.port =5555
+        self.port = int(port)
         self.server_socket = None
         self.screen_quality = 45
         self.mouse = Controller()
@@ -142,6 +142,6 @@ class Server:
         t1.start()
         t2.join()
         t1.join()
-if __name__ == "__main__":
-    server_run = Server()
-    server_run.start_server()
+# if __name__ == "__main__":
+#     server_run = Server()
+#     server_run.start_server()
