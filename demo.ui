@@ -1,0 +1,441 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>RemoteDesktop</class>
+ <widget class="QMainWindow" name="RemoteDesktop">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1009</width>
+    <height>632</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Remote Desktop</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">background-color: rgb(245, 247, 250)</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QWidget" name="widget" native="true">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>95</y>
+      <width>469</width>
+      <height>470</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border: 1px solid rgb(0, 0, 0);
+background-color: rgb(230, 233, 237);
+border-radius: 10px;</string>
+    </property>
+    <widget class="QLabel" name="label">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>30</y>
+       <width>401</width>
+       <height>38</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Inter Light</family>
+       <pointsize>18</pointsize>
+       <weight>3</weight>
+       <italic>false</italic>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border: 0px;
+font: 25 18pt &quot;Inter Light&quot;;
+color: rgb(0, 0, 0);</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth">
+      <number>0</number>
+     </property>
+     <property name="text">
+      <string>ALLOW REMOTE CONTROL</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_2">
+     <property name="geometry">
+      <rect>
+       <x>34</x>
+       <y>93</y>
+       <width>138</width>
+       <height>37</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border: 0px;
+font: 25 13pt &quot;Inter Light&quot;;
+color: rgb(0, 0, 0);</string>
+     </property>
+     <property name="text">
+      <string>Your IP</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>34</x>
+       <y>189</y>
+       <width>116</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border: 0px;
+font: 25 13pt &quot;Inter Light&quot;;
+color: rgb(0, 0, 0);</string>
+     </property>
+     <property name="text">
+      <string>Password</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="my_pass">
+     <property name="geometry">
+      <rect>
+       <x>34</x>
+       <y>230</y>
+       <width>309</width>
+       <height>39</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border: 1px solid rgb(0, 0, 0);
+color: rgb(0, 0, 0);
+background-color: rgb(255, 255, 255);
+border-radius: 0px;
+font: 12 12pt &quot;Inter ExtraLight&quot;;</string>
+     </property>
+     <property name="placeholderText">
+      <string>Enter Password</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="your_ip">
+     <property name="geometry">
+      <rect>
+       <x>34</x>
+       <y>140</y>
+       <width>309</width>
+       <height>39</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border: 1px solid rgb(0, 0, 0);
+border-radius: 0px;
+color: rgb(0, 0, 0);
+background-color: rgb(255, 255, 255);
+font: 12 12pt &quot;Inter ExtraLight&quot;;</string>
+     </property>
+     <property name="text">
+      <string>192.168.0.12</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="audio">
+     <property name="geometry">
+      <rect>
+       <x>34</x>
+       <y>290</y>
+       <width>311</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border: 0px;
+font: 25 12pt &quot;Inter Light&quot;;
+color: rgb(0, 0, 0);</string>
+     </property>
+     <property name="text">
+      <string>Allow share computer audio</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="open_connect">
+     <property name="geometry">
+      <rect>
+       <x>34</x>
+       <y>380</y>
+       <width>251</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Inter ExtraBold</family>
+       <pointsize>16</pointsize>
+       <weight>10</weight>
+       <italic>false</italic>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton {
+	background-color: rgb(71, 112, 255);
+	color: rgb(0, 0, 0);
+	font: 81 16pt &quot;Inter ExtraBold&quot;;
+	border-radius: 5px;
+}
+QPushButton:hover{
+	background-color: rgb(82, 144, 255);
+	color: rgb(0, 0, 0);
+	font: 81 16pt &quot;Inter ExtraBold&quot;;
+	border-radius: 5px;
+}
+QPushButton:pressed{
+	padding-left: 5px;
+	padding-top: 5px;
+}</string>
+     </property>
+     <property name="text">
+      <string>Open Connect</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QLabel" name="label_9">
+    <property name="enabled">
+     <bool>false</bool>
+    </property>
+    <property name="geometry">
+     <rect>
+      <x>5</x>
+      <y>5</y>
+      <width>281</width>
+      <height>38</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Inter Light</family>
+      <pointsize>18</pointsize>
+      <weight>3</weight>
+      <italic>false</italic>
+      <bold>false</bold>
+     </font>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border: 0px;
+font: 25 18pt &quot;Inter Light&quot;;
+color: rgb(0, 0, 0);
+</string>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::NoFrame</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Plain</enum>
+    </property>
+    <property name="lineWidth">
+     <number>0</number>
+    </property>
+    <property name="text">
+     <string>REMOTE DESKTOP</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="widget_2" native="true">
+    <property name="geometry">
+     <rect>
+      <x>510</x>
+      <y>95</y>
+      <width>469</width>
+      <height>470</height>
+     </rect>
+    </property>
+    <property name="styleSheet">
+     <string notr="true">border: 1px solid rgb(0, 0, 0);
+background-color: rgb(230, 233, 237);
+border-radius: 10px;</string>
+    </property>
+    <widget class="QLabel" name="label_5">
+     <property name="enabled">
+      <bool>false</bool>
+     </property>
+     <property name="geometry">
+      <rect>
+       <x>20</x>
+       <y>30</y>
+       <width>431</width>
+       <height>38</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Inter Light</family>
+       <pointsize>18</pointsize>
+       <weight>3</weight>
+       <italic>false</italic>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border: 0px;
+font: 25 18pt &quot;Inter Light&quot;;
+color: rgb(0, 0, 0);</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::NoFrame</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Plain</enum>
+     </property>
+     <property name="lineWidth">
+      <number>0</number>
+     </property>
+     <property name="text">
+      <string>CONTROL REMOTE DESKTOP</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_6">
+     <property name="geometry">
+      <rect>
+       <x>34</x>
+       <y>93</y>
+       <width>138</width>
+       <height>37</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border: 0px;
+font: 25 13pt &quot;Inter Light&quot;;
+color: rgb(0, 0, 0);</string>
+     </property>
+     <property name="text">
+      <string>Server IP</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_7">
+     <property name="geometry">
+      <rect>
+       <x>34</x>
+       <y>189</y>
+       <width>116</width>
+       <height>31</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border: 0px;
+font: 25 13pt &quot;Inter Light&quot;;
+color: rgb(0, 0, 0);</string>
+     </property>
+     <property name="text">
+      <string>Password</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="record">
+     <property name="geometry">
+      <rect>
+       <x>34</x>
+       <y>290</y>
+       <width>311</width>
+       <height>41</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border: 0px;
+font: 25 12pt &quot;Inter Light&quot;;
+color: rgb(0, 0, 0);</string>
+     </property>
+     <property name="text">
+      <string>Record remote control</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="connect">
+     <property name="geometry">
+      <rect>
+       <x>34</x>
+       <y>380</y>
+       <width>251</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <family>Inter ExtraBold</family>
+       <pointsize>16</pointsize>
+       <weight>10</weight>
+       <italic>false</italic>
+       <bold>false</bold>
+      </font>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QPushButton {
+	background-color: rgb(71, 112, 255);
+	color: rgb(0, 0, 0);
+	font: 81 16pt &quot;Inter ExtraBold&quot;;
+	border-radius: 5px;
+}
+QPushButton:hover{
+	background-color: rgb(82, 144, 255);
+	color: rgb(0, 0, 0);
+	font: 81 16pt &quot;Inter ExtraBold&quot;;
+	border-radius: 5px;
+}
+QPushButton:pressed{
+	padding-left: 5px;
+	padding-top: 5px;
+}</string>
+     </property>
+     <property name="text">
+      <string>Connect</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="server_ip">
+     <property name="geometry">
+      <rect>
+       <x>34</x>
+       <y>140</y>
+       <width>309</width>
+       <height>39</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border: 1px solid rgb(0, 0, 0);
+color: rgb(0, 0, 0);
+background-color: rgb(255, 255, 255);
+border-radius: 0px;
+font: 12 12pt &quot;Inter ExtraLight&quot;;</string>
+     </property>
+     <property name="placeholderText">
+      <string>Enter IP</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="pass_server">
+     <property name="geometry">
+      <rect>
+       <x>34</x>
+       <y>230</y>
+       <width>309</width>
+       <height>39</height>
+      </rect>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">border: 1px solid rgb(0, 0, 0);
+color: rgb(0, 0, 0);
+background-color: rgb(255, 255, 255);
+border-radius: 0px;
+font: 12 12pt &quot;Inter ExtraLight&quot;;</string>
+     </property>
+     <property name="placeholderText">
+      <string>Enter Password</string>
+     </property>
+    </widget>
+   </widget>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -14,9 +14,10 @@ class Client:
     def __init__(self):
         self.host=""
         self.my_host = socket.gethostbyname(socket.gethostname())
-        self.port = 5555
+        self.port = 5555 #port goi hinh anh
         self.click_count = 0
         self.client_socket = None
+        self.running = True
         self.window = "APPSocket"
         self.focus_window = False
     def send_size_window(self):  #goi kich thuoc cua so
@@ -74,8 +75,6 @@ class Client:
                    self.send_mouse('scroll up')
                 else:
                     self.send_mouse('scroll down')
-                    #client
-
     def send_key(self,key):
         message = pickle.dumps(key)
         packet = struct.pack('Q',len(message)) + message
@@ -99,7 +98,7 @@ class Client:
         if(self.focus_window):
             self.send_key(data)
     def listen_keyboard(self):
-        while True:
+        while self.running:
             with keyboard.Listener(on_press=self.on_press, on_release=self.on_release) as listener:
                 listener.join()
     def revceive_screen(self):
@@ -109,7 +108,7 @@ class Client:
         connection, address = server_socket.accept()
         payload_size = struct.calcsize('>L')
         data = b""
-        while True:
+        while self.running:
             try:
                 break_loop = False
                 while len(data) < payload_size:
