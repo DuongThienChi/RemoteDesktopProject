@@ -23,6 +23,7 @@ class Server:
         self.server_socket = None
         self.screen_quality = 45
         self.mouse = Controller()
+        
     def receive_client_ip(self): #nhan dia chi ip client
         try:
             server_host = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -33,9 +34,16 @@ class Server:
             self.host = str(self.host.decode("utf-8"))
             conn.close()
             server_host.close()
-        except:
-            mess.showerror(title="Lỗi",
-                             message="Server Kết nối thất bại!")
+        except ConnectionResetError:
+                mess.showerror(title="Error",
+                             message="Connection reset failed!")
+        except ConnectionAbortedError:
+                mess.showerror(title="Error",
+                             message="Connection aborted!")
+        except BrokenPipeError:
+                mess.showerror(title="Error",
+                             message="Connection failed!")
+            
     def recv_size_window(self):   #nhan kich thuoc cua so
         try:
             server_host = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -47,9 +55,16 @@ class Server:
             self.x_res,self.y_res = int(size[0]),int(size[1])
             conn.close()
             server_host.close()
-        except:
-            mess.showerror(title="Lỗi",
-                             message="Server Kết nối thất bại!") 
+        except ConnectionResetError:
+                mess.showerror(title="Error",
+                             message="Connection reset failed!")
+        
+        except ConnectionAbortedError:
+                mess.showerror(title="Error",
+                             message="Connection aborted!")
+        except BrokenPipeError:
+                mess.showerror(title="Error",
+                             message="Connection failed!")
     def get_frame(self):  #chụp màn hình
         screen = pyautogui.screenshot()
         frame = np.array(screen)
@@ -67,13 +82,16 @@ class Server:
             try:
                 socket_screen.sendall(struct.pack('>L', size) + data)
             except ConnectionResetError:
-                print("Connection reset failed")
+                mess.showerror(title="Error",
+                             message="Connection reset failed!")
                 break
             except ConnectionAbortedError:
-                print("Connection aborted")
+                mess.showerror(title="Error",
+                             message="Connection aborted!")
                 break
             except BrokenPipeError:
-                print("Connection failed")
+                mess.showerror(title="Error",
+                             message="Connection failed!")
                 break
     def get_keyboard(self,key):
         controller = keyboard.Controller()

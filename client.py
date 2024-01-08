@@ -21,13 +21,13 @@ class Client:
         self.window = "APPSocket"
         self.focus_window = False
         self.record = False
+        self.width_window = 1920
+        self.height_window = 1080
     def send_size_window(self):  #goi kich thuoc cua so
-        width= input("Choose size width of window: ")
-        height= input("Choose size height of window: ")
         try:
             client_host = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             client_host.connect((self.host,self.port))
-            client_host.send(f"{width} {height}".encode("utf-8"))
+            client_host.send(f"{self.width_window} {self.height_window}".encode("utf-8"))
             client_host.close()
         except ConnectionResetError:
             mess.showerror(title="Error",
@@ -131,10 +131,12 @@ class Client:
         }
         if(self.focus_window):
             self.send_key(data)
+            
     def listen_keyboard(self):
         while self.running:
             with keyboard.Listener(on_press=self.on_press, on_release=self.on_release) as listener:
                 listener.join()
+                
     def receive_screen(self):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #nhận màn hình
         server_socket.bind((self.my_host, self.port))
@@ -206,6 +208,7 @@ class Client:
             #     connection.close()
             #     cv2.destroyAllWindows()
             #     break
+            
     def start_client(self):
         self.send_client_ip()
         self.send_size_window()
