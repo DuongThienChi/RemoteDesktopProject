@@ -13,13 +13,13 @@ import os
 import struct
 from pynput import keyboard
 class Server:
-    def __init__(self,port):
+    def __init__(self):
         self.x_res,self.y_res = int(pyautogui.size()[0]), int(pyautogui.size()[1])
         self.width,self.height = int(pyautogui.size()[0]), int(pyautogui.size()[1])
         self.host =""
         self.my_host = socket.gethostbyname(socket.gethostname())
         self.running = True
-        self.port = int(port)
+        self.port = 4444
         self.server_socket = None
         self.screen_quality = 45
         self.mouse = Controller()
@@ -84,9 +84,6 @@ class Server:
     def recv_control(self):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #dùng UDP để nhận chuột
         self.server_socket.bind((self.my_host,self.port))
-    # client_controll.listen(1)
-    # print("Listening......")
-    # conn, adrr = client_controll.accept()
         hold=0
         header = struct.calcsize('Q')
         data=b''

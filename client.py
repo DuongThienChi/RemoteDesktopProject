@@ -11,16 +11,16 @@ import numpy as np
 import os
 import time
 class Client:
-    def __init__(self,server_ip,port,record):
-        self.host=server_ip
+    def __init__(self):
+        self.host = ""
         self.my_host = socket.gethostbyname(socket.gethostname())
-        self.port = port #port goi hinh anh
+        self.port = 4444 #port goi hinh anh
         self.click_count = 0
         self.client_socket = None
         self.running = True
         self.window = "APPSocket"
         self.focus_window = False
-        self.record = record
+        self.record = False
     def send_size_window(self):  #goi kich thuoc cua so
         width= input("Choose size width of window: ")
         height= input("Choose size height of window: ")
@@ -29,26 +29,49 @@ class Client:
             client_host.connect((self.host,self.port))
             client_host.send(f"{width} {height}".encode("utf-8"))
             client_host.close()
-        except:
-            mess.showerror(title="Lỗi",
-                             message="Client Kết nối thất bại!")
+        except ConnectionResetError:
+            mess.showerror(title="Error",
+                             message="Connection reset failed!")
+        except ConnectionAbortedError:
+            mess.showerror(title="Error",
+                             message="Connection aborted!")
+        except BrokenPipeError:
+             mess.showerror(title="Error",
+                             message="Connection failed!")
     def send_client_ip(self): #goi dia chi ip client
         try:
             client_host = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             client_host.connect((self.host,self.port))
             client_host.send(self.my_host.encode("utf-8"))
             client_host.close()
-        except:
-            mess.showerror(title="Lỗi",
-                             message="Client Kết nối thất bại!")
+        except ConnectionResetError:
+            mess.showerror(title="Error",
+                             message="Connection reset failed!")
+        except ConnectionAbortedError:
+            mess.showerror(title="Error",
+                             message="Connection aborted!")
+        except BrokenPipeError:
+             mess.showerror(title="Error",
+                             message="Connection failed!")
     def send_mouse(self,data): #gởi dữ liệu chuột
-        message =  {
-            'type_data': 'mouse',
-            'data': data
-        }
-        mess = pickle.dumps(message)
-        packet = struct.pack('Q',len(mess)) + mess
-        self.client_socket.sendall(packet)
+        try:
+            message =  {
+                'type_data': 'mouse',
+                'data': data
+            }
+            mess = pickle.dumps(message)
+            packet = struct.pack('Q',len(mess)) + mess
+            self.client_socket.sendall(packet)
+        except ConnectionResetError:
+            mess.showerror(title="Error",
+                             message="Connection reset failed!")
+        except ConnectionAbortedError:
+            mess.showerror(title="Error",
+                             message="Connection aborted!")
+        except BrokenPipeError:
+             mess.showerror(title="Error",
+                             message="Connection failed!")
+            
     def mouse_event(self,event, x, y, flags,param): #Lắng nghe chuột
             if event == cv2.EVENT_MOUSEMOVE:
                 message=f'mouse_move {x} {y}'
@@ -77,10 +100,20 @@ class Client:
                 else:
                     self.send_mouse('scroll down')
     def send_key(self,key):
-        message = pickle.dumps(key)
-        packet = struct.pack('Q',len(message)) + message
-        self.client_socket.sendall(packet)
-        
+        try:
+            message = pickle.dumps(key)
+            packet = struct.pack('Q',len(message)) + message
+            self.client_socket.sendall(packet)
+        except ConnectionResetError:
+            mess.showerror(title="Error",
+                             message="Connection reset failed!")
+        except ConnectionAbortedError:
+            mess.showerror(title="Error",
+                             message="Connection aborted!")
+        except BrokenPipeError:
+             mess.showerror(title="Error",
+                             message="Connection failed!")
+            
     def on_press(self,key):
         data = {
             'type_data' : 'key',
@@ -102,7 +135,7 @@ class Client:
         while self.running:
             with keyboard.Listener(on_press=self.on_press, on_release=self.on_release) as listener:
                 listener.join()
-    def revceive_screen(self):
+    def receive_screen(self):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #nhận màn hình
         server_socket.bind((self.my_host, self.port))
         server_socket.listen()
@@ -151,9 +184,23 @@ class Client:
                     self.focus_window = False
                 cv2.setMouseCallback(self.window, self.mouse_event)  #gởi chuột
                 cv2.waitKey(1)
-            except:
+            except ConnectionResetError:
                 connection.close()
                 cv2.destroyAllWindows()
+                mess.showerror(title="Error",
+                             message="Connection reset failed!")
+                break
+            except ConnectionAbortedError:
+                connection.close()
+                cv2.destroyAllWindows()
+                mess.showerror(title="Error",
+                             message="Connection aborted!")
+                break
+            except BrokenPipeError:
+                connection.close()
+                cv2.destroyAllWindows()
+                mess.showerror(title="Error",
+                             message="Connection failed!")
                 break
             # if cv2.waitKey(1): 
             #     connection.close()
@@ -164,8 +211,8 @@ class Client:
         self.send_size_window()
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #dùng UDP để gởi chuột
         self.client_socket.connect((self.host, self.port))
-        t1=threading.Thread(target=self.revceive_screen) #nhận màn hình
-        t2= threading.Thread(target=self.listen_keyboard) 
+        t1  = threading.Thread(target=self.receive_screen) #nhận màn hình
+        t2  = threading.Thread(target=self.listen_keyboard) 
         t1.start()
         t2.start()
         t1.join()

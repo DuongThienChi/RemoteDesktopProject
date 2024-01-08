@@ -306,13 +306,17 @@ class Ui_RemoteDesktop(object):
                 self.check_start_remote = False
                 self.thread_client.kill()
         def thread_run_server(self):
-                app = server.Server(self.my_port.text())
+                app = server.Server()
+                app.port = int(self.my_port.text())
                 app.start_server()
         def run_server(self):
                 self.thread_server = thread_with_trace(target=self.thread_run_server)
                 self.thread_server.start()
         def thread_run_client(self):
-                app = client.Client(self.server_ip.text(),self.port_server.text(),self.record.isChecked())
+                app = client.Client()
+                app.host = self.server_ip.text()
+                app.port = int(self.port_server.text())
+                app.record = self.record.isChecked()
                 app.start_client()
         def run_client(self):
                 self.thread_client =  thread_with_trace(target=self.thread_run_client)
