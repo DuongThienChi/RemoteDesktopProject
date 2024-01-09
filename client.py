@@ -10,51 +10,50 @@ import tkinter.messagebox as mess
 import numpy as np
 import os
 import time
+
 class Client:
     def __init__(self):
         self.host = ""
         self.my_host = socket.gethostbyname(socket.gethostname())
+        #self.my_host = "26.36.177.11"
         self.port = 4444 #port goi hinh anh
         self.click_count = 0
         self.client_socket = None
-        self.running = True
-        self.window = "APPSocket"
+        self.running = False
+        self.window = "Remote Desktop"
         self.focus_window = False
         self.record = False
         self.width_window = 1920
         self.height_window = 1080
+        self.filename_record =""
+    def handle_error(self, error):
+        mess.showerror(title = "Error",
+                             message = error)
+        self.running = False
     def send_size_window(self):  #goi kich thuoc cua so
+        width= str(1920)
+        height= str(1080)
+        time.sleep(5)
         try:
             client_host = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             client_host.connect((self.host,self.port))
-            client_host.send(f"{self.width_window} {self.height_window}".encode("utf-8"))
+            mess = str(self.width_window)  + ' ' + str(self.height_window)
+            print(mess)
+            client_host.send(mess.encode('utf-8'))
             client_host.close()
-        except ConnectionResetError:
-            mess.showerror(title="Error",
-                             message="Connection reset failed!")
-        except ConnectionAbortedError:
-            mess.showerror(title="Error",
-                             message="Connection aborted!")
-        except BrokenPipeError:
-             mess.showerror(title="Error",
-                             message="Connection failed!")
+        except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError,TimeoutError) as e:
+                self.handle_error(e)
     def send_client_ip(self): #goi dia chi ip client
         try:
             client_host = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             client_host.connect((self.host,self.port))
+            print(self.my_host)
             client_host.send(self.my_host.encode("utf-8"))
             client_host.close()
-        except ConnectionResetError:
-            mess.showerror(title="Error",
-                             message="Connection reset failed!")
-        except ConnectionAbortedError:
-            mess.showerror(title="Error",
-                             message="Connection aborted!")
-        except BrokenPipeError:
-             mess.showerror(title="Error",
-                             message="Connection failed!")
-    def send_mouse(self,data): #gởi dữ liệu chuột
-        try:
+        except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError,TimeoutError) as e:
+                self.handle_error(e)
+    def send_mouse(self,data):
+        try:#gởi dữ liệu chuột
             message =  {
                 'type_data': 'mouse',
                 'data': data
@@ -62,19 +61,11 @@ class Client:
             mess = pickle.dumps(message)
             packet = struct.pack('Q',len(mess)) + mess
             self.client_socket.sendall(packet)
-        except ConnectionResetError:
-            mess.showerror(title="Error",
-                             message="Connection reset failed!")
-        except ConnectionAbortedError:
-            mess.showerror(title="Error",
-                             message="Connection aborted!")
-        except BrokenPipeError:
-             mess.showerror(title="Error",
-                             message="Connection failed!")
-            
+        except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError,TimeoutError) as e:
+                self.handle_error(e)
     def mouse_event(self,event, x, y, flags,param): #Lắng nghe chuột
             if event == cv2.EVENT_MOUSEMOVE:
-                message=f'mouse_move {x} {y}'
+                message = f'mouse_move {x} {y}'
                 self.send_mouse(message)
             elif event == cv2.EVENT_LBUTTONDOWN:
                 self.click_count = 1
@@ -96,7 +87,7 @@ class Client:
                 self.send_mouse(message)
             elif event == cv2.EVENT_MOUSEWHEEL:
                 if flags > 0:
-                   self.send_mouse('scroll up')
+                    self.send_mouse('scroll up')
                 else:
                     self.send_mouse('scroll down')
     def send_key(self,key):
@@ -104,15 +95,8 @@ class Client:
             message = pickle.dumps(key)
             packet = struct.pack('Q',len(message)) + message
             self.client_socket.sendall(packet)
-        except ConnectionResetError:
-            mess.showerror(title="Error",
-                             message="Connection reset failed!")
-        except ConnectionAbortedError:
-            mess.showerror(title="Error",
-                             message="Connection aborted!")
-        except BrokenPipeError:
-             mess.showerror(title="Error",
-                             message="Connection failed!")
+        except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError,TimeoutError) as e:
+                self.handle_error(e)
             
     def on_press(self,key):
         data = {
@@ -134,7 +118,7 @@ class Client:
             
     def listen_keyboard(self):
         while self.running:
-            with keyboard.Listener(on_press=self.on_press, on_release=self.on_release) as listener:
+            with keyboard.Listener(on_press = self.on_press, on_release = self.on_release) as listener:
                 listener.join()
                 
     def receive_screen(self):
@@ -142,12 +126,11 @@ class Client:
         server_socket.bind((self.my_host, self.port))
         server_socket.listen()
         connection, address = server_socket.accept()
+        resolution = tuple(pyautogui.size())
         if self.record:
-            resolution = tuple(pyautogui.size())
             codec = cv2.VideoWriter_fourcc(*"XVID")
-            filename = "C:/Users/ViettelStore/OneDrive - VNU-HCMUS/Desktop/Recording.avi"
             fps = 12.0
-            file_record = cv2.VideoWriter(filename, codec, fps, resolution)
+            file_record = cv2.VideoWriter(self.filename_record, codec, fps, resolution)
         payload_size = struct.calcsize('>L')
         data = b""
         while self.running:
@@ -173,7 +156,7 @@ class Client:
                 frame_data = data[:msg_size]
                 data = data[msg_size:]
                 
-                frame = pickle.loads(frame_data, fix_imports=True, encoding="bytes")
+                frame = pickle.loads(frame_data, fix_imports = True, encoding = "bytes")
                 frame = cv2.imdecode(frame, cv2.IMREAD_COLOR)
                 cv2.namedWindow(self.window, cv2.WINDOW_NORMAL)
                 cv2.resizeWindow(self.window,frame.shape[1], frame.shape[0])
@@ -186,36 +169,24 @@ class Client:
                     self.focus_window = False
                 cv2.setMouseCallback(self.window, self.mouse_event)  #gởi chuột
                 cv2.waitKey(1)
-            except ConnectionResetError:
+            except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError,TimeoutError) as e:
                 connection.close()
                 cv2.destroyAllWindows()
-                mess.showerror(title="Error",
-                             message="Connection reset failed!")
-                break
-            except ConnectionAbortedError:
-                connection.close()
-                cv2.destroyAllWindows()
-                mess.showerror(title="Error",
-                             message="Connection aborted!")
-                break
-            except BrokenPipeError:
-                connection.close()
-                cv2.destroyAllWindows()
-                mess.showerror(title="Error",
-                             message="Connection failed!")
+                self.handle_error(e)
                 break
             # if cv2.waitKey(1): 
             #     connection.close()
             #     cv2.destroyAllWindows()
             #     break
-            
+        server_socket.close()
     def start_client(self):
+        self.running = True
         self.send_client_ip()
         self.send_size_window()
         self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #dùng UDP để gởi chuột
         self.client_socket.connect((self.host, self.port))
-        t1  = threading.Thread(target=self.receive_screen) #nhận màn hình
-        t2  = threading.Thread(target=self.listen_keyboard) 
+        t1  = threading.Thread(target = self.receive_screen) #nhận màn hình
+        t2  = threading.Thread(target = self.listen_keyboard) 
         t1.start()
         t2.start()
         t1.join()
@@ -224,4 +195,3 @@ class Client:
 # if __name__ == "__main__":
 #     client = Client()
 #     client.start_client()
-    

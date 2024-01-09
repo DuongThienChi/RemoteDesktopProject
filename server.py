@@ -10,20 +10,25 @@ import win32api
 import pickle
 import tkinter.messagebox as mess
 import os
+import time
 import struct
 from pynput import keyboard
 class Server:
     def __init__(self):
         self.x_res,self.y_res = int(pyautogui.size()[0]), int(pyautogui.size()[1])
         self.width,self.height = int(pyautogui.size()[0]), int(pyautogui.size()[1])
-        self.host =""
+        self.host = ""
         self.my_host = socket.gethostbyname(socket.gethostname())
-        self.running = True
+        self.running = False
         self.port = 4444
         self.server_socket = None
         self.screen_quality = 45
         self.mouse = Controller()
-        
+        self.server_host = None
+    def handle_error(self, error):
+        mess.showerror(title = "Error",
+                             message = error)
+        self.running = False
     def receive_client_ip(self): #nhan dia chi ip client
         try:
             server_host = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -34,15 +39,8 @@ class Server:
             self.host = str(self.host.decode("utf-8"))
             conn.close()
             server_host.close()
-        except ConnectionResetError:
-                mess.showerror(title="Error",
-                             message="Connection reset failed!")
-        except ConnectionAbortedError:
-                mess.showerror(title="Error",
-                             message="Connection aborted!")
-        except BrokenPipeError:
-                mess.showerror(title="Error",
-                             message="Connection failed!")
+        except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError,TimeoutError) as e:
+                self.handle_error(e)
             
     def recv_size_window(self):   #nhan kich thuoc cua so
         try:
@@ -53,18 +51,12 @@ class Server:
             size = conn.recv(1024).decode("utf-8")
             size = size.split(' ')
             self.x_res,self.y_res = int(size[0]),int(size[1])
+            print(self.x_res,self.y_res)
             conn.close()
             server_host.close()
-        except ConnectionResetError:
-                mess.showerror(title="Error",
-                             message="Connection reset failed!")
-        
-        except ConnectionAbortedError:
-                mess.showerror(title="Error",
-                             message="Connection aborted!")
-        except BrokenPipeError:
-                mess.showerror(title="Error",
-                             message="Connection failed!")
+        except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError,TimeoutError) as e:
+                self.handle_error(e)
+    
     def get_frame(self):  #chụp màn hình
         screen = pyautogui.screenshot()
         frame = np.array(screen)
@@ -81,18 +73,10 @@ class Server:
             size = len(data)
             try:
                 socket_screen.sendall(struct.pack('>L', size) + data)
-            except ConnectionResetError:
-                mess.showerror(title="Error",
-                             message="Connection reset failed!")
+            except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError,TimeoutError) as e:
+                self.handle_error(e)
                 break
-            except ConnectionAbortedError:
-                mess.showerror(title="Error",
-                             message="Connection aborted!")
-                break
-            except BrokenPipeError:
-                mess.showerror(title="Error",
-                             message="Connection failed!")
-                break
+        socket_screen.close()
     def get_keyboard(self,key):
         controller = keyboard.Controller()
         if key['type'] == 'down':
@@ -102,55 +86,58 @@ class Server:
     def recv_control(self):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #dùng UDP để nhận chuột
         self.server_socket.bind((self.my_host,self.port))
-        hold=0
+        hold = 0
         header = struct.calcsize('Q')
-        data=b''
+        data = b''
         while self.running:
-            while len(data) < header:
-                data += self.server_socket.recv(1024)
-            mess_size = struct.unpack('Q',data[:header])[0]
-            data = data[header:]
-            while len(data) < mess_size:
-                data += self.server_socket.recv(1024)
-            resquest = data[:mess_size]
-            data = data[mess_size:]
-            key = pickle.loads(resquest)
-            if(key['type_data'] == 'mouse'):
-                if(key['data']!=""):
-                    datagram = key['data']
-                    datagram = datagram.split()
-                    if(len(datagram) == 3):
-                        if(datagram[0] == 'mouse_move'):
-                            x,y = int (int(datagram[1])*self.width/self.x_res), int(int(datagram[2])*self.height/self.y_res)
-                            print(x,y)
-                            win32api.SetCursorPos((x,y))
-                        elif(datagram[0] == 'left_click_and_hold' and hold==0):
-                            pyautogui.press(but.left)
-                            hold = 1
-                        elif(datagram[0] == 'left_release' and hold ==1):
-                            pyautogui.mouseUp()
-                            hold=0
-                        elif(datagram[0] == 'left_double_click'):
-                            pyautogui.doubleClick()
-                        elif(datagram[0] == 'right_click'):
-                            pyautogui.rightClick()
-                        elif(datagram[0] == 'middle_click'):
-                            pyautogui.middleClick()
-                    elif(len(datagram) == 2):
-                        if(datagram[0] == 'scroll' and datagram[1] == 'up'):
-                            self.mouse.scroll(0,1)
-                        elif(datagram[0] == 'scroll' and datagram[1] == 'down'):
-                            self.mouse.scroll(0,-1)    
-            else:
-                self.get_keyboard(key)    
+            try:
+                while len(data) < header:
+                    data += self.server_socket.recv(1024)
+                mess_size = struct.unpack('Q',data[:header])[0]
+                data = data[header:]
+                while len(data) < mess_size:
+                    data += self.server_socket.recv(1024)
+                resquest = data[:mess_size]
+                data = data[mess_size:]
+                key = pickle.loads(resquest)
+                if(key['type_data'] == 'mouse'):
+                    if(key['data']!=""):
+                        datagram = key['data']
+                        datagram = datagram.split()
+                        if(len(datagram) == 3):
+                            if(datagram[0] == 'mouse_move'):
+                                x,y = int(int(datagram[1])*self.width/self.x_res), int(int(datagram[2])*self.height/self.y_res)
+                                win32api.SetCursorPos((x,y))
+                            elif(datagram[0] == 'left_click_and_hold' and hold==0):
+                                pyautogui.mouseDown()
+                                hold = 1
+                            elif(datagram[0] == 'left_release' and hold ==1):
+                                pyautogui.mouseUp()
+                                hold=0
+                            elif(datagram[0] == 'left_double_click'):
+                                pyautogui.doubleClick()
+                            elif(datagram[0] == 'right_click'):
+                                pyautogui.rightClick()
+                            elif(datagram[0] == 'middle_click'):
+                                pyautogui.middleClick()
+                        elif(len(datagram) == 2):
+                            if(datagram[0] == 'scroll' and datagram[1] == 'up'):
+                                self.mouse.scroll(0,1)
+                            elif(datagram[0] == 'scroll' and datagram[1] == 'down'):
+                                self.mouse.scroll(0,-1)    
+                else:
+                    self.get_keyboard(key)
+            except:
+                self.running = False
+        self.server_socket.close()
     def start_server(self):
+        self.running = True
         self.receive_client_ip()
         print(self.host)
         self.recv_size_window ()
-        print(self.x_res,self.y_res)
         print(self.width, self.height)
-        t2= threading.Thread(target=self.recv_control) #nhận chuột va phim
-        t1= threading.Thread(target=self.send_display) #gởi màn hình
+        t2= threading.Thread(target = self.recv_control) #nhận chuột va phim
+        t1= threading.Thread(target = self.send_display) #gởi màn hình
         t1.daemon = True
         t2.daemon = True
         t2.start()
