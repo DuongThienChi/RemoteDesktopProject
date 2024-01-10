@@ -14,8 +14,8 @@ import time
 class Client:
     def __init__(self):
         self.host = ""
-        self.my_host = socket.gethostbyname(socket.gethostname())
-        #self.my_host = "26.36.177.11"
+        #self.my_host = socket.gethostbyname(socket.gethostname())
+        self.my_host = "26.36.177.11"
         self.port = 4444 #port goi hinh anh
         self.click_count = 0
         self.client_socket = None
@@ -33,12 +33,11 @@ class Client:
     def send_size_window(self):  #goi kich thuoc cua so
         width= str(1920)
         height= str(1080)
-        time.sleep(5)
+        time.sleep(3)
         try:
             client_host = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             client_host.connect((self.host,self.port))
             mess = str(self.width_window)  + ' ' + str(self.height_window)
-            print(mess)
             client_host.send(mess.encode('utf-8'))
             client_host.close()
         except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError,TimeoutError) as e:
@@ -126,8 +125,10 @@ class Client:
         server_socket.bind((self.my_host, self.port))
         server_socket.listen()
         connection, address = server_socket.accept()
-        resolution = tuple(pyautogui.size())
         if self.record:
+            x = int(self.width_window)
+            y = int(self.height_window)
+            resolution = tuple((x, y))
             codec = cv2.VideoWriter_fourcc(*"XVID")
             fps = 12.0
             file_record = cv2.VideoWriter(self.filename_record, codec, fps, resolution)

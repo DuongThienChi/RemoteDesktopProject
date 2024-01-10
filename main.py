@@ -13,9 +13,11 @@ import server,client
 import sys
 import trace
 import tkinter.messagebox as mess
+import datetime
 import tkinter as tk
 from tkinter import filedialog
 import time
+import datetime
 class Ui_Setting(object):
         def __init__(self):
                 self.setting_window = None
@@ -174,8 +176,16 @@ class Ui_Setting(object):
                 if self.setting_window is not None:
                         self.get_size_window()
                         self.is_record = self.record.isChecked()
-                        if(self.is_record):
-                                self.choose_directory()
+                        if ( self.is_record):
+                                file = filedialog.asksaveasfile(defaultextension = '.avi',
+                                                                filetypes = [
+                                                                        ("Video file", ".avi"),
+                                                                        ("Text file", ".txt"),
+                                                                        ("All files", ".*"),
+                                                                        ])
+                                if file is None:
+                                        return
+                                self.directory_record_path = file.name
                         self.setting_window.close()
                 self.setting_window = None  
         def quit_Cancel(self):
@@ -186,10 +196,6 @@ class Ui_Setting(object):
                 list = self.display.currentText().split(" ")
                 self.width = (list[0])
                 self.height = int(list[2])
-        def choose_directory(self):
-                root = tk.Tk()
-                root.withdraw()  
-                self.directory_record_path = filedialog.askdirectory()
 class Ui_RemoteDesktop(object):
         def __init__(self):
                 self.check_open_connect =False
@@ -498,7 +504,6 @@ class Ui_RemoteDesktop(object):
         def thread_run_server(self):
                 self.app = server.Server()
                 self.app.port = int(self.my_port.text())
-                print(self.app.port)
                 self.app.start_server()
         def run_server(self):
                 self.thread_server = threading.Thread(target=self.thread_run_server)
@@ -512,12 +517,13 @@ class Ui_RemoteDesktop(object):
                 self.app.width_window = self.setting_window.width
                 self.app.height_window = self.setting_window.height
                 if ( self.app.record):
-                         self.app.filename_record = self.setting_window.directory_record_path+"/Recording.avi"
+                         self.app.filename_record = self.setting_window.directory_record_path
                 print( self.app.host,  self.app.port,  self.app.width_window,  self.app.height_window, self.app.record)
                 print( self.app.filename_record)
                 self.app.start_client()
         def run_client(self):
                 self.thread_client =  threading.Thread(target=self.thread_run_client)
+                self.thread_client.daemon = True
                 self.thread_client.start()
         def get_ip_address(self):
                 server_ip = socket.gethostbyname(socket.gethostname())

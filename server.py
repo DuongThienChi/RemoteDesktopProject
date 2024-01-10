@@ -18,7 +18,7 @@ class Server:
         self.x_res,self.y_res = int(pyautogui.size()[0]), int(pyautogui.size()[1])
         self.width,self.height = int(pyautogui.size()[0]), int(pyautogui.size()[1])
         self.host = ""
-        self.my_host = socket.gethostbyname(socket.gethostname())
+        self.my_host = "26.86.28.22" #socket.gethostbyname(socket.gethostname())
         self.running = False
         self.port = 4444
         self.server_socket = None
@@ -28,20 +28,23 @@ class Server:
     def handle_error(self, error):
         mess.showerror(title = "Error",
                              message = error)
+        print("Closing connection")
         self.running = False
     def receive_client_ip(self): #nhan dia chi ip client
+        server_host = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
+       # server_host.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         try:
-            server_host = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
             server_host.bind((self.my_host, self.port))
+            server_host.settimeout(10)
             server_host.listen()
             conn, addr = server_host.accept()
             self.host = conn.recv(1024)
             self.host = str(self.host.decode("utf-8"))
             conn.close()
             server_host.close()
-        except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError,TimeoutError) as e:
+        except socket.timeout as e:
+                server_host.close()
                 self.handle_error(e)
-            
     def recv_size_window(self):   #nhan kich thuoc cua so
         try:
             server_host = socket.socket(socket.AF_INET,socket.SOCK_STREAM)
@@ -127,13 +130,14 @@ class Server:
                                 self.mouse.scroll(0,-1)    
                 else:
                     self.get_keyboard(key)
-            except:
-                self.running = False
+            except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError,TimeoutError) as e:
+                self.handle_error(e)
+                break
         self.server_socket.close()
     def start_server(self):
-        self.running = True
         self.receive_client_ip()
         print(self.host)
+        self.running=True 
         self.recv_size_window ()
         print(self.width, self.height)
         t2= threading.Thread(target = self.recv_control) #nhận chuột va phim
