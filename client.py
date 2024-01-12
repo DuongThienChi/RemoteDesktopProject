@@ -10,12 +10,13 @@ import tkinter.messagebox as mess
 import numpy as np
 import os
 import time
+from tkinter import filedialog
 
 class Client:
     def __init__(self):
         self.host = ""
-        #self.my_host = socket.gethostbyname(socket.gethostname())
-        self.my_host = "26.36.177.11"
+        self.my_host = socket.gethostbyname(socket.gethostname())
+        # self.my_host = "26.151.58.139"
         self.port = 4444 #port goi hinh anh
         self.click_count = 0
         self.client_socket = None
@@ -95,8 +96,7 @@ class Client:
             packet = struct.pack('Q',len(message)) + message
             self.client_socket.sendall(packet)
         except (ConnectionResetError, ConnectionAbortedError, BrokenPipeError,TimeoutError) as e:
-                self.handle_error(e)
-            
+                self.handle_error(e)   
     def on_press(self,key):
         data = {
             'type_data' : 'key',
@@ -104,8 +104,7 @@ class Client:
             'key' : key
         }
         if(self.focus_window):
-            self.send_key(data)
-        
+            self.send_key(data)  
     def on_release(self,key):
         data = {
             'type_data' : 'key',
@@ -113,13 +112,11 @@ class Client:
             'key' : key
         }
         if(self.focus_window):
-            self.send_key(data)
-            
+            self.send_key(data)        
     def listen_keyboard(self):
         while self.running:
             with keyboard.Listener(on_press = self.on_press, on_release = self.on_release) as listener:
                 listener.join()
-                
     def receive_screen(self):
         server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM) #nhận màn hình
         server_socket.bind((self.my_host, self.port))
@@ -180,19 +177,57 @@ class Client:
             #     cv2.destroyAllWindows()
             #     break
         server_socket.close()
+    def choose_file(self):
+        # Hiển thị cửa sổ chọn tệp
+        file_path = os.path.realpath(
+        filedialog.askopenfilename(title="Select File"))
+        file_path = file_path.replace("\\", "/")
+        # In ra đường dẫn đến tệp đã chọn
+        return file_path
+    def send_filename(self, sck, filename):
+        message = os.path.split(filename)[1]
+        message_length = len(message)
+        packed_message = struct.pack("<I", message_length)
+        sck.sendall(packed_message)
+        sck.send(message.encode('utf-8'))
+    def send_file(self):
+        new_client = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        new_client.connect((self.host, self.port + 5))
+        filename = self.choose_file()
+        self.send_filename(new_client, filename)
+        time.sleep(0.5)
+        filesize = os.path.getsize(filename)
+        new_client.sendall(struct.pack("<Q", filesize))
+        with open(filename, "rb") as f:
+            while read_bytes := f.read(1024):
+                new_client.sendall(read_bytes)
+        new_client.close()
+    def start_sendfile(self):
+        message =  {
+        'type_data': 'sendfile',
+        'data': 'sendfile'
+        }
+        mess = pickle.dumps(message)
+        packet = struct.pack('Q',len(mess)) + mess
+        self.client_socket.sendall(packet)
+        time.sleep(1)
+        ##gởi file
+        sendfile_thread = Thread(target= self.send_file)
+        sendfile_thread.start()
     def start_client(self):
         self.running = True
         self.send_client_ip()
-        self.send_size_window()
-        self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #dùng UDP để gởi chuột
-        self.client_socket.connect((self.host, self.port))
-        t1  = threading.Thread(target = self.receive_screen) #nhận màn hình
-        t2  = threading.Thread(target = self.listen_keyboard) 
-        t1.start()
-        t2.start()
-        t1.join()
-        t2.join()
-        self.client_socket.close()
+        if (self.running):
+            self.send_size_window()
+            self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM) #dùng UDP để gởi chuột
+            self.client_socket.connect((self.host, self.port))
+            t1  = threading.Thread(target = self.receive_screen) #nhận màn hình
+            t2  = threading.Thread(target = self.listen_keyboard)
+            t1.start()
+            t2.start()
+            t1.join()
+            t2.join()
+            self.client_socket.close()
 # if __name__ == "__main__":
 #     client = Client()
 #     client.start_client()
