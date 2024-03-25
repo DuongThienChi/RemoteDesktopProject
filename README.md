@@ -19,6 +19,7 @@
 - `pip install pywin32`
 - `pip install pynput`
 - `pip install numpy`
+### Ứng dụng dùng để điều khiển máy tính từ một máy tính khác có chung kết nối mạng
 ### Chạy chương trình:
 - Run file main.py và nhập các thông tin cần thiết để chạy Client/Server.
 - Lưu ý: Server sẽ tự động đóng sau 10s nếu Client không kết nối.
